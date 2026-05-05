@@ -333,7 +333,6 @@ body{font-family:var(--font);background:#e4e4e4;color:var(--black);min-height:10
 
 <!-- Firebase -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -867,47 +866,131 @@ function applyLangUI(){
 }
 
 // ─── PDF Download ──────────────────────────────────────────
-window.downloadPDF = async function(){
+const LOGO_B64 = 'PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9Ijc2IiB2aWV3Qm94PSIwIDAgMjg1LjA3IDY3LjI3IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9IiMxMTExMTEiPjxnIGlkPSJMYXllcl8xLTIiPjxwYXRoIGQ9Ik0wLDBoOS44OXY2Ni4yMkgwVjBaIi8+PHBhdGggZD0iTTIxLjk2LDM4LjE0aDQwLjI0djguNzVIMjEuOTZ2LTguNzVaIi8+PHBhdGggZD0iTTc0LjI2LDE4LjloOS40NXY1Ljg2YzIuNjItNC41NSw3LjQ0LTYuOTEsMTMuMjEtNi45MSw2LjM5LDAsMTEuOTgsMy4wNiwxNC43OCw4LjA1LDMuMTUtNS4zNCw4LjQ5LTguMDUsMTQuNzgtOC4wNSw5Ljg4LDAsMTcuNTgsNy4zNSwxNy41OCwxNy43NnYzMC42MmgtOS44OXYtMjcuOTFjMC03LTQuMDItMTEuMjktOS45Ny0xMS4yOXMtMTAuMTUsNC4yOS0xMC4xNSwxMS4yOXYyNy45MWgtOS44di0yNy45MWMwLTctNC4xMS0xMS4yOS0xMC4wNi0xMS4yOXMtMTAuMDYsNC4yOS0xMC4wNiwxMS4yOXYyNy45MWgtOS44OVYxOC45WiIvPjxwYXRoIGQ9Ik0xNTMuNjksMTguOWg5LjQ1djUuNzdjMi43MS00LjQ2LDcuNTItNi44MiwxMy4zOC02LjgyLDEwLjMyLDAsMTcuODUsNy4zNSwxNy44NSwxNy43NnYzMC42MmgtOS44di0yNy45MWMwLTctNC4yOS0xMS4yOS0xMC41LTExLjI5cy0xMC41LDQuMjktMTAuNSwxMS4yOXYyNy45MWgtOS44OFYxOC45WiIvPjxwYXRoIGQ9Ik0yMDguNzksNTAuNzR2LTIyLjkyaC04LjMxdi04LjkyaDEuMzFjNC4zNywwLDctMi43MSw3LTcuMTd2LTMuNjdoOS44OHYxMC44NWgxMC43NnY4LjkyaC0xMC43NnYyMi40OGMwLDQuODEsMi4xOSw3LjcsNy44Nyw3LjcuODgsMCwyLjEtLjA5LDMuMjQtLjI2djguNDljLTEuNTguMjYtMy43Ni41Mi01LjM0LjUyLTkuOTcsMC0xNS42Ni01Ljg2LTE1LjY2LTE2LjAxWiIvPjxwYXRoIGQ9Ik0yMzUuNjUsNDIuNTFjMC0xNC4yNiwxMC44NS0yNC42NywyNC43Ni0yNC42N3MyNC42NywxMC40MSwyNC42NywyNC42Ny0xMS4xMSwyNC43Ni0yNC42NywyNC43Ni0yNC43Ni0xMC41LTI0Ljc2LTI0Ljc2Wk0yNzQuODQsNDIuNTFjMC04LjkyLTYuMjEtMTUuNDgtMTQuNDMtMTUuNDhzLTE0LjQzLDYuNTYtMTQuNDMsMTUuNDgsNi4xMiwxNS41NywxNC40MywxNS41NywxNC40My02LjY1LDE0LjQzLTE1LjU3WiIvPjxwYXRoIGQ9Ik0yODUuMDcsMTcuN2MwLDEuNTctMS4yMywyLjgtMi44MywyLjhzLTIuODUtMS4yMy0yLjg1LTIuOCwxLjI3LTIuNzcsMi44NS0yLjc3LDIuODMsMS4yMywyLjgzLDIuNzdaTTI4MC4xLDE3LjdjMCwxLjIzLjkxLDIuMjEsMi4xNiwyLjIxczIuMTEtLjk4LDIuMTEtMi4xOS0uODktMi4yMy0yLjEzLTIuMjMtMi4xNCwxLTIuMTQsMi4yMVpNMjgxLjgsMTkuMTVoLS42NHYtMi43N2MuMjUtLjA1LjYxLS4wOCwxLjA2LS4wOC41MiwwLC43Ni4wOC45Ni4yLjE1LjEyLjI3LjM0LjI3LjYxLDAsLjMtLjI0LjU0LS41Ny42NHYuMDNjLjI3LjEuNDIuMy41MS42Ny4wOC40Mi4xMy41OS4yLjY5aC0uNjljLS4wOC0uMS0uMTMtLjM1LS4yMi0uNjctLjA1LS4zLS4yMi0uNDQtLjU3LS40NGgtLjN2MS4xMVpNMjgxLjgyLDE3LjU4aC4zYy4zNSwwLC42NC0uMTIuNjQtLjQsMC0uMjUtLjE4LS40Mi0uNTktLjQyLS4xNywwLS4yOS4wMi0uMzUuMDN2Ljc5WiIvPjwvZz48L3N2Zz4=';
+
+window.downloadPDF = function(){
   const btn = document.getElementById('btn-pdf');
-  const origText = btn.innerHTML;
   btn.innerHTML = '⏳ Generando…';
   btn.disabled = true;
 
-  try {
-    const el = document.getElementById('inv-preview-wrap');
-    const canvas = await html2canvas(el, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false
-    });
+  setTimeout(()=>{
+    try{
+      const inv = lastPreviewData;
+      if(!inv){ alert('Abre la vista previa primero.'); btn.innerHTML='⬇ Descargar PDF'; btn.disabled=false; return; }
 
-    const imgData = canvas.toDataURL('image/png');
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'letter'
-    });
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
+      const W = doc.internal.pageSize.getWidth(); // 215.9
+      const mx = 20; // margin x
+      const cw = W - mx*2; // content width
+      let y = 20;
 
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const margin = 15;
-    const imgW = pageW - margin * 2;
-    const imgH = (canvas.height * imgW) / canvas.width;
+      const s = settings;
+      const t = T[lang];
+      const items = inv.lineItems || [];
+      const total = inv.total || items.reduce((a,li)=>a+(parseFloat(li.amount)||0),0);
+      const fmtDate = inv.date ? new Date(inv.date+'T12:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}) : '';
+      const num = (inv.number||'').replace('#','').trim();
+      const clientFile = (inv.clientName||'').replace(/[^a-zA-Z0-9]/g,'-').slice(0,20);
 
-    pdf.addImage(imgData, 'PNG', margin, margin, imgW, Math.min(imgH, pageH - margin * 2));
+      // ── Logo (SVG as image) ──
+      try{
+        doc.addImage('data:image/svg+xml;base64,'+LOGO_B64,'SVG', W-mx-50, y-2, 50, 12);
+      }catch(e){
+        // fallback text logo
+        doc.setFont('helvetica','bold').setFontSize(16).setTextColor(15,15,15);
+        doc.text('l–mnto', W-mx, y+6, {align:'right'});
+      }
 
-    // Filename from invoice number
-    const num = (lastPreviewData?.number || 'invoice').replace('#','').trim();
-    const client = (lastPreviewData?.clientName || '').replace(/[^a-zA-Z0-9]/g,'-').slice(0,20);
-    pdf.save(`invoice-${num}-${client}.pdf`);
-  } catch(e) {
-    alert('Error generando PDF: ' + e.message);
-  }
+      // ── From info ──
+      doc.setFont('helvetica','normal').setFontSize(8).setTextColor(80,80,80);
+      const fromLines = [
+        s.phone||'', s.email||'', '',
+        s.name||'',
+        ...(s.addr||'').split(',').map(x=>x.trim()),
+        s.web||''
+      ].filter(Boolean);
+      fromLines.forEach(line=>{ doc.text(line, mx, y); y+=4; });
 
-  btn.innerHTML = origText;
-  btn.disabled = false;
+      // ── Divider ──
+      y += 4;
+      doc.setDrawColor(210,210,210).setLineWidth(0.3).line(mx, y, W-mx, y);
+      y += 8;
+
+      // ── Invoice number + date ──
+      doc.setFont('helvetica','normal').setFontSize(8).setTextColor(100,100,100);
+      const metaLine = `${t.invoiceNum}: #${num}     ${t.dateIssued}: ${fmtDate}`;
+      doc.text(metaLine, W-mx, y, {align:'right'});
+      y += 12;
+
+      // ── Billed To ──
+      doc.setFont('helvetica','bold').setFontSize(7).setTextColor(140,140,140);
+      doc.text((t.billedTo||'BILLED TO:').toUpperCase(), mx, y); y+=5;
+      doc.setFont('helvetica','bold').setFontSize(10).setTextColor(15,15,15);
+      doc.text(inv.clientName||'', mx, y); y+=5;
+      doc.setFont('helvetica','normal').setFontSize(8).setTextColor(80,80,80);
+      doc.text(inv.clientAddress||'', mx, y); y+=12;
+
+      // ── INVOICE label ──
+      doc.setFont('helvetica','bold').setFontSize(7).setTextColor(140,140,140);
+      doc.text('INVOICE', mx, y); y+=6;
+
+      // ── Table header ──
+      doc.setDrawColor(200,200,200).setLineWidth(0.2).line(mx, y, W-mx, y);
+      y+=4;
+      const colDesc=mx, colRate=mx+cw*0.52, colQty=mx+cw*0.68, colAmt=mx+cw*0.84;
+      doc.setFont('helvetica','bold').setFontSize(7).setTextColor(130,130,130);
+      doc.text(t.descCol||'Description', colDesc, y);
+      doc.text(t.rateCol||'Rate', colRate, y);
+      doc.text(t.qtyCol||'Qty', colQty, y);
+      doc.text(t.amtCol||'Amount', W-mx, y, {align:'right'});
+      y+=3;
+      doc.setDrawColor(200,200,200).line(mx, y, W-mx, y);
+      y+=6;
+
+      // ── Line items ──
+      doc.setFont('helvetica','normal').setFontSize(9).setTextColor(15,15,15);
+      items.forEach(li=>{
+        const descLines = doc.splitTextToSize(li.desc||'', cw*0.48);
+        const rowH = Math.max(descLines.length*4.5, 7);
+        descLines.forEach((line,i)=>doc.text(line, colDesc, y+i*4.5));
+        doc.text(li.rate?`USD $${parseFloat(li.rate).toFixed(0)}/hr`:'', colRate, y);
+        doc.text(String(li.qty||''), colQty, y);
+        doc.setFont('helvetica','bold');
+        doc.text(li.amount?`USD $${parseFloat(li.amount).toFixed(2)}`:'', W-mx, y, {align:'right'});
+        doc.setFont('helvetica','normal');
+        y += rowH;
+        doc.setDrawColor(230,230,230).setLineWidth(0.1).line(mx, y, W-mx, y);
+        y+=4;
+      });
+
+      // ── Totals ──
+      y+=4;
+      doc.setFont('helvetica','normal').setFontSize(9).setTextColor(80,80,80);
+      doc.text(`${t.subTotal||'Sub Total'}:`, W-mx-40, y); doc.text(`USD $${total.toFixed(2)}`, W-mx, y, {align:'right'}); y+=6;
+      doc.text(`${t.discount||'Discount'}: ${t.na||'N/A'}`, W-mx-40, y); y+=6;
+      doc.text(`${t.taxes||'Taxes'}: ${t.na||'N/A'}`, W-mx-40, y); y+=8;
+      doc.setDrawColor(15,15,15).setLineWidth(0.5).line(W-mx-60, y, W-mx, y); y+=5;
+      doc.setFont('helvetica','bold').setFontSize(11).setTextColor(15,15,15);
+      doc.text(`${t.total||'Total'}: USD $${total.toFixed(2)}`, W-mx, y, {align:'right'});
+
+      // ── Footer ──
+      y+=16;
+      doc.setDrawColor(210,210,210).setLineWidth(0.2).line(mx, y, W-mx, y); y+=5;
+      doc.setFont('helvetica','normal').setFontSize(7).setTextColor(160,160,160);
+      doc.text(s.web||'', mx, y);
+      doc.text(s.email||'', W-mx, y, {align:'right'});
+
+      doc.save(`invoice-${num}-${clientFile}.pdf`);
+
+    }catch(e){
+      alert('Error: '+e.message);
+      console.error(e);
+    }
+
+    btn.innerHTML='⬇ Descargar PDF';
+    btn.disabled=false;
+  },100);
 };
 
 // ─── Start ─────────────────────────────────────────────────
