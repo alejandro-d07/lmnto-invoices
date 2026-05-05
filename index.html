@@ -547,6 +547,10 @@ function renderLIs(){
         <div style="padding-bottom:2px"><button class="btn btn-sm btn-danger" onclick="liRemove(${i})">✕</button></div>
       </div>
     </div>`).join('');
+  // Auto-calculate any items that already have rate+qty pre-filled
+  lineItems.forEach((li,i)=>{
+    if(li.rate && li.qty) liCalcIdx(i);
+  });
   updateTotals();
 }
 
@@ -556,12 +560,13 @@ window.liSetEv=function(el){
   lineItems[i][f]=el.value;
 };
 window.liCalcIdx=function(i){
+  if(!lineItems[i])return;
   const r=parseFloat(lineItems[i].rate)||0;
   const q=parseFloat(lineItems[i].qty)||0;
   const amt=(r*q).toFixed(2);
   lineItems[i].amount=amt;
   const el=document.getElementById('li-amt-'+i);
-  if(el){el.value=amt;}
+  if(el)el.value=amt;
   updateTotals();
 };
 window.liRemove=function(i){lineItems.splice(i,1);renderLIs()};
