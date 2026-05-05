@@ -324,6 +324,10 @@ body{font-family:var(--font);background:#e4e4e4;color:var(--black);min-height:10
         </div>
         <div class="flex">
           <button class="btn" onclick="nav('new-invoice')">← Editar</button>
+          <div style="display:flex;border:1px solid var(--g300);border-radius:var(--r);overflow:hidden">
+            <button id="lang-es" class="btn btn-sm" style="border:none;border-radius:0;border-right:1px solid var(--g300)" onclick="setLang('es')">ES</button>
+            <button id="lang-en" class="btn btn-sm" style="border:none;border-radius:0" onclick="setLang('en')">EN</button>
+          </div>
           <button class="btn btn-black" onclick="window.print()">Imprimir / PDF</button>
         </div>
       </div>
@@ -349,6 +353,42 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// ─── Language ─────────────────────────────────────────────
+let lang = localStorage.getItem('lmnto_lang') || 'es';
+
+const T = {
+  es: {
+    invoiceLabel: 'INVOICE',
+    billedTo: 'Facturado a:',
+    descCol: 'Descripción',
+    rateCol: 'Tarifa',
+    qtyCol: 'Cantidad',
+    amtCol: 'Monto',
+    subTotal: 'Subtotal',
+    discount: 'Descuento',
+    taxes: 'Impuestos',
+    total: 'Total',
+    na: 'N/A',
+    invoiceNum: 'NÚMERO DE FACTURA',
+    dateIssued: 'FECHA DE EMISIÓN',
+  },
+  en: {
+    invoiceLabel: 'INVOICE',
+    billedTo: 'Billed To:',
+    descCol: 'Description',
+    rateCol: 'Rate',
+    qtyCol: 'Qty',
+    amtCol: 'Amount',
+    subTotal: 'Sub Total',
+    discount: 'Discount',
+    taxes: 'Taxes',
+    total: 'Total',
+    na: 'N/A',
+    invoiceNum: 'INVOICE NUMBER',
+    dateIssued: 'DATE ISSUED',
+  }
+};
 
 // ─── State ───────────────────────────────────────────────
 let settings = {name:'Alejandro Antonio Diaz Gonzalez',phone:'+52 (618) 167.0841',email:'hola@l-mnto.com',web:'www.l-mnto.com',addr:'Calle 40-A #160, Col. Santa Lucía, Valladolid, Yuc. México, C.P. 97782',nextNum:32};
@@ -495,29 +535,33 @@ window.addLI = function(){
 function renderLIs(){
   const c=document.getElementById('li-container');
   c.innerHTML=lineItems.map((li,i)=>`
-    <div class="li-row">
+    <div class="li-row" data-idx="${i}">
       <div class="field" style="margin-bottom:10px">
-        <label>Descripción</label>
-        <textarea onchange="liSet(${i},'desc',this.value)">${li.desc||''}</textarea>
+        <label id="lbl-desc-${i}">Descripción</label>
+        <textarea data-idx="${i}" data-field="desc" onchange="liSetEv(this)">${li.desc||''}</textarea>
       </div>
       <div class="row4">
-        <div class="field"><label>Tarifa/hr USD</label><input type="number" value="${li.rate||''}" placeholder="18" oninput="liSet(${i},'rate',this.value);liCalc(${i})"/></div>
-        <div class="field"><label>Horas</label><input type="number" value="${li.qty||''}" placeholder="0" step="0.5" oninput="liSet(${i},'qty',this.value);liCalc(${i})"/></div>
-        <div class="field"><label>Total USD</label><input type="number" id="li-amt-${i}" value="${li.amount||''}" placeholder="0.00" oninput="liSet(${i},'amount',this.value);updateTotals()"/></div>
+        <div class="field"><label id="lbl-rate-${i}">Tarifa/hr USD</label><input type="number" data-idx="${i}" data-field="rate" value="${li.rate||''}" placeholder="18" oninput="liSetEv(this);liCalcIdx(${i})"/></div>
+        <div class="field"><label id="lbl-qty-${i}">Horas</label><input type="number" data-idx="${i}" data-field="qty" value="${li.qty||''}" placeholder="0" step="0.5" oninput="liSetEv(this);liCalcIdx(${i})"/></div>
+        <div class="field"><label id="lbl-amt-${i}">Total USD</label><input type="number" id="li-amt-${i}" data-idx="${i}" data-field="amount" value="${li.amount||''}" placeholder="0.00" oninput="liSetEv(this);updateTotals()"/></div>
         <div style="padding-bottom:2px"><button class="btn btn-sm btn-danger" onclick="liRemove(${i})">✕</button></div>
       </div>
     </div>`).join('');
   updateTotals();
 }
 
-window.liSet=(i,f,v)=>lineItems[i][f]=v;
-window.liCalc=function(i){
+window.liSetEv=function(el){
+  const i=parseInt(el.dataset.idx);
+  const f=el.dataset.field;
+  lineItems[i][f]=el.value;
+};
+window.liCalcIdx=function(i){
   const r=parseFloat(lineItems[i].rate)||0;
   const q=parseFloat(lineItems[i].qty)||0;
   const amt=(r*q).toFixed(2);
   lineItems[i].amount=amt;
   const el=document.getElementById('li-amt-'+i);
-  if(el)el.value=amt;
+  if(el){el.value=amt;}
   updateTotals();
 };
 window.liRemove=function(i){lineItems.splice(i,1);renderLIs()};
@@ -593,21 +637,21 @@ function renderPreview(inv){
     </div>
     <hr class="inv-divider"/>
     <div class="inv-meta-row">
-      INVOICE NUMBER: <strong>${inv.number||''}</strong>
+      ${T[lang].invoiceNum}: <strong>${inv.number||''}</strong>
       &nbsp;&nbsp;&nbsp;
-      DATE ISSUED: <strong>${fmtDate}</strong>
+      ${T[lang].dateIssued}: <strong>${fmtDate}</strong>
     </div>
-    <div class="inv-billed-label">Billed To:</div>
+    <div class="inv-billed-label">${T[lang].billedTo}</div>
     <div class="inv-billed-name">${c.name||inv.clientName||''}</div>
     <div class="inv-billed-addr">${c.address||inv.clientAddress||''}</div>
-    <div class="inv-table-label">INVOICE</div>
+    <div class="inv-table-label">${T[lang].invoiceLabel}</div>
     <table class="inv-tbl">
       <thead>
         <tr>
-          <th style="width:55%">Description</th>
-          <th>Rate</th>
-          <th>Qty</th>
-          <th>Amount</th>
+          <th style="width:55%">${T[lang].descCol}</th>
+          <th>${T[lang].rateCol}</th>
+          <th>${T[lang].qtyCol}</th>
+          <th>${T[lang].amtCol}</th>
         </tr>
       </thead>
       <tbody>
@@ -621,10 +665,10 @@ function renderPreview(inv){
       </tbody>
     </table>
     <div class="inv-totals">
-      <div>Sub Total: <strong>USD $${total.toFixed(2)}</strong></div>
-      <div>Discount: N/A</div>
-      <div>Taxes: N/A</div>
-      <div class="inv-total-final">Total: USD $${total.toFixed(2)}</div>
+      <div>${T[lang].subTotal}: <strong>USD $${total.toFixed(2)}</strong></div>
+      <div>${T[lang].discount}: ${T[lang].na}</div>
+      <div>${T[lang].taxes}: ${T[lang].na}</div>
+      <div class="inv-total-final">${T[lang].total}: USD $${total.toFixed(2)}</div>
     </div>
     <div class="inv-footer">
       <span>${s.web||''}</span>
@@ -797,8 +841,27 @@ function showAlert(id,msg,type){
   setTimeout(()=>el.classList.remove('show'),4000);
 }
 
+// ─── Language switch ───────────────────────────────────────
+window.setLang = function(l){
+  lang = l;
+  localStorage.setItem('lmnto_lang', l);
+  document.getElementById('lang-es').style.background = l==='es' ? 'var(--black)' : '';
+  document.getElementById('lang-es').style.color = l==='es' ? 'var(--white)' : '';
+  document.getElementById('lang-en').style.background = l==='en' ? 'var(--black)' : '';
+  document.getElementById('lang-en').style.color = l==='en' ? 'var(--white)' : '';
+  // Re-render preview if visible
+  if(document.getElementById('page-preview').classList.contains('active')){
+    const inv = invoices.find(x=>x.id===currentInvId);
+    if(inv){ const c=clients.find(cl=>cl.id===inv.clientId); renderPreview({...inv,client:c}); }
+  }
+};
+
+function applyLangUI(){
+  setLang(lang);
+}
+
 // ─── Start ─────────────────────────────────────────────────
-init();
+init().then(()=>applyLangUI());
 </script>
 </body>
 </html>
