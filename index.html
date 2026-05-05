@@ -332,7 +332,6 @@ body{font-family:var(--font);background:#e4e4e4;color:var(--black);min-height:10
 </div>
 
 <!-- Firebase -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -868,138 +867,99 @@ function applyLangUI(){
 
 // ─── PDF Download ──────────────────────────────────────────
 window.downloadPDF = function(){
-  const btn = document.getElementById('btn-pdf');
-  btn.innerHTML = '⏳ Generando…';
-  btn.disabled = true;
+  const inv = lastPreviewData;
+  if(!inv){ alert('Abre la vista previa primero.'); return; }
 
-  setTimeout(()=>{
-    try{
-      const inv = lastPreviewData;
-      if(!inv){ alert('Abre la vista previa primero.'); btn.innerHTML='⬇ Descargar PDF'; btn.disabled=false; return; }
+  const s = settings;
+  const t = T[lang];
+  const items = inv.lineItems || [];
+  const total = inv.total || items.reduce((a,li)=>a+(parseFloat(li.amount)||0),0);
+  const fmtDate = inv.date ? new Date(inv.date+'T12:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}) : '';
 
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter', compress:true });
-      const W = doc.internal.pageSize.getWidth();
-      const mx = 20;
-      const cw = W - mx*2;
-      let y = 22;
+  const rows = items.map(li=>`
+    <tr>
+      <td>${li.desc||''}</td>
+      <td>${li.rate?'USD $'+parseFloat(li.rate).toFixed(0)+' / Hour':''}</td>
+      <td>${li.qty||''}</td>
+      <td class="bold">${li.amount?'USD $'+parseFloat(li.amount).toFixed(2):''}</td>
+    </tr>`).join('');
 
-      const s = settings;
-      const t = T[lang];
-      const items = inv.lineItems || [];
-      const total = inv.total || items.reduce((a,li)=>a+(parseFloat(li.amount)||0),0);
-      const fmtDate = inv.date ? new Date(inv.date+'T12:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}) : '';
-      const num = (inv.number||'').replace('#','').trim();
-      const clientFile = (inv.clientName||'').replace(/[^a-zA-Z0-9]/g,'-').slice(0,20);
+  const logoSvg = `<svg width="140" height="33" viewBox="0 0 285.07 67.27" xmlns="http://www.w3.org/2000/svg" fill="#0f0f0f"><g><path d="M0,0h9.89v66.22H0V0Z"/><path d="M21.96,38.14h40.24v8.75H21.96v-8.75Z"/><path d="M74.26,18.9h9.45v5.86c2.62-4.55,7.44-6.91,13.21-6.91,6.39,0,11.98,3.06,14.78,8.05,3.15-5.34,8.49-8.05,14.78-8.05,9.88,0,17.58,7.35,17.58,17.76v30.62h-9.89v-27.91c0-7-4.02-11.29-9.97-11.29s-10.15,4.29-10.15,11.29v27.91h-9.8v-27.91c0-7-4.11-11.29-10.06-11.29s-10.06,4.29-10.06,11.29v27.91h-9.89V18.9Z"/><path d="M153.69,18.9h9.45v5.77c2.71-4.46,7.52-6.82,13.38-6.82,10.32,0,17.85,7.35,17.85,17.76v30.62h-9.8v-27.91c0-7-4.29-11.29-10.5-11.29s-10.5,4.29-10.5,11.29v27.91h-9.88V18.9Z"/><path d="M208.79,50.74v-22.92h-8.31v-8.92h1.31c4.37,0,7-2.71,7-7.17v-3.67h9.88v10.85h10.76v8.92h-10.76v22.48c0,4.81,2.19,7.7,7.87,7.7.88,0,2.1-.09,3.24-.26v8.49c-1.58.26-3.76.52-5.34.52-9.97,0-15.66-5.86-15.66-16.01Z"/><path d="M235.65,42.51c0-14.26,10.85-24.67,24.76-24.67s24.67,10.41,24.67,24.67-11.11,24.76-24.67,24.76-24.76-10.5-24.76-24.76ZM274.84,42.51c0-8.92-6.21-15.48-14.43-15.48s-14.43,6.56-14.43,15.48,6.12,15.57,14.43,15.57,14.43-6.65,14.43-15.57Z"/></g></svg>`;
 
-      // Helper
-      const gray = (v) => doc.setTextColor(v,v,v);
-      const black = () => doc.setTextColor(15,15,15);
-      const normal = (sz) => { doc.setFont('helvetica','normal'); doc.setFontSize(sz||9); };
-      const bold = (sz) => { doc.setFont('helvetica','bold'); doc.setFontSize(sz||9); };
-
-      // ── Logo as text (vector, zero weight) ──
-      bold(18); black();
-      doc.text('l–mnto', W-mx, y, {align:'right'});
-      y += 2;
-
-      // ── From info ──
-      normal(8); gray(90);
-      const fromLines = [s.phone||'', s.email||'', '', ...(s.name?[s.name]:[]), ...(s.addr||'').split(',').map(x=>x.trim()), s.web||''].filter(Boolean);
-      // Bold name
-      fromLines.forEach((line, i) => {
-        if(line === s.name){ bold(8); black(); doc.text(line, mx, y); normal(8); gray(90); }
-        else doc.text(line, mx, y);
-        y += 4;
-      });
-
-      // ── Divider ──
-      y += 3;
-      doc.setDrawColor(210,210,210).setLineWidth(0.2).line(mx, y, W-mx, y);
-      y += 7;
-
-      // ── Invoice number + date ──
-      normal(8); gray(110);
-      doc.text(`${t.invoiceNum}: `, W-mx-50, y);
-      bold(8); black();
-      const numW = doc.getTextWidth(`${t.invoiceNum}: `);
-      doc.text(`#${num}`, W-mx-50+numW, y);
-      normal(8); gray(110);
-      doc.text(`   ${t.dateIssued}: `, W-mx-18, y);
-      bold(8); black();
-      doc.text(fmtDate, W-mx, y, {align:'right'});
-      y += 12;
-
-      // ── Billed To ──
-      bold(7); gray(150);
-      doc.text((t.billedTo||'BILLED TO:').toUpperCase(), mx, y); y += 5;
-      bold(11); black();
-      doc.text(inv.clientName||'', mx, y); y += 5;
-      normal(8); gray(90);
-      doc.text(inv.clientAddress||'', mx, y); y += 12;
-
-      // ── INVOICE label ──
-      bold(7); gray(150);
-      doc.text('INVOICE', mx, y); y += 5;
-
-      // ── Table header ──
-      doc.setDrawColor(200,200,200).setLineWidth(0.2).line(mx, y, W-mx, y);
-      y += 5;
-      const c1=mx, c2=mx+cw*0.52, c3=mx+cw*0.68, c4=W-mx;
-      bold(7); gray(140);
-      doc.text(t.descCol||'Description', c1, y);
-      doc.text(t.rateCol||'Rate', c2, y);
-      doc.text(t.qtyCol||'Qty', c3, y);
-      doc.text(t.amtCol||'Amount', c4, y, {align:'right'});
-      y += 3;
-      doc.setDrawColor(200,200,200).line(mx, y, W-mx, y);
-      y += 6;
-
-      // ── Line items ──
-      items.forEach(li=>{
-        const descLines = doc.splitTextToSize(li.desc||'', cw*0.48);
-        const rowH = Math.max(descLines.length * 5, 8);
-        normal(9); black();
-        descLines.forEach((line,i) => doc.text(line, c1, y + i*5));
-        doc.text(li.rate ? `USD $${parseFloat(li.rate).toFixed(0)}/hr` : '', c2, y);
-        doc.text(String(li.qty||''), c3, y);
-        bold(9);
-        doc.text(li.amount ? `USD $${parseFloat(li.amount).toFixed(2)}` : '', c4, y, {align:'right'});
-        y += rowH;
-        doc.setDrawColor(230,230,230).setLineWidth(0.1).line(mx, y, W-mx, y);
-        y += 5;
-      });
-
-      // ── Totals ──
-      y += 4;
-      normal(9); gray(90);
-      [[`${t.subTotal}:`, `USD $${total.toFixed(2)}`],[`${t.discount}:`,t.na],[`${t.taxes}:`,t.na]].forEach(([label,val])=>{
-        doc.text(label, W-mx-45, y);
-        doc.text(val, c4, y, {align:'right'});
-        y += 6;
-      });
-      doc.setDrawColor(15,15,15).setLineWidth(0.4).line(W-mx-50, y, W-mx, y);
-      y += 5;
-      bold(12); black();
-      doc.text(`${t.total}: USD $${total.toFixed(2)}`, c4, y, {align:'right'});
-
-      // ── Footer ──
-      y += 14;
-      doc.setDrawColor(210,210,210).setLineWidth(0.2).line(mx, y, W-mx, y);
-      y += 5;
-      normal(7); gray(160);
-      doc.text(s.web||'', mx, y);
-      doc.text(s.email||'', c4, y, {align:'right'});
-
-      doc.save(`invoice-${num}-${clientFile}.pdf`);
-
-    }catch(e){
-      alert('Error: '+e.message);
-      console.error(e);
-    }
-    btn.innerHTML='⬇ Descargar PDF';
-    btn.disabled=false;
-  },50);
+  const w = window.open('','_blank','width=900,height=700');
+  w.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>Invoice ${inv.number||''}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter Tight',Helvetica,sans-serif;font-size:12px;color:#111;background:#fff;padding:40px 48px;max-width:760px;margin:0 auto}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}
+  .from{font-size:11px;line-height:1.9;color:#666}
+  .from strong{color:#111}
+  hr{border:none;border-top:1px solid #e0e0e0;margin:0 0 24px}
+  .meta{text-align:right;font-size:11px;color:#888;margin-bottom:28px}
+  .meta strong{color:#111}
+  .billed-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#aaa;margin-bottom:5px}
+  .billed-name{font-size:14px;font-weight:700;margin-bottom:3px}
+  .billed-addr{font-size:11px;color:#666;margin-bottom:28px}
+  .inv-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#aaa;margin-bottom:8px}
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  th{text-align:left;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#aaa;padding:0 0 8px;border-bottom:1px solid #e0e0e0}
+  th:not(:first-child){text-align:right}
+  td{padding:11px 0;border-bottom:1px solid #f0f0f0;vertical-align:top}
+  td:not(:first-child){text-align:right}
+  .bold{font-weight:700}
+  .totals{margin-top:16px;text-align:right;font-size:12px;line-height:2.2}
+  .total-final{font-size:15px;font-weight:700;border-top:1.5px solid #111;padding-top:6px;margin-top:4px;display:inline-block}
+  .footer{margin-top:32px;padding-top:12px;border-top:1px solid #e0e0e0;font-size:10px;color:#bbb;display:flex;justify-content:space-between}
+  @media print{
+    @page{margin:0;size:letter}
+    body{padding:28px 36px}
+  }
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="from">
+    ${s.phone||''}<br>${s.email||''}<br><br>
+    <strong>${s.name||''}</strong><br>
+    ${(s.addr||'').split(',').map(x=>x.trim()).join('<br>')}<br>
+    ${s.web||''}
+  </div>
+  ${logoSvg}
+</div>
+<hr/>
+<div class="meta">${t.invoiceNum}: <strong>${inv.number||''}</strong>&nbsp;&nbsp;&nbsp;${t.dateIssued}: <strong>${fmtDate}</strong></div>
+<div class="billed-label">${t.billedTo||'Billed To:'}</div>
+<div class="billed-name">${inv.clientName||''}</div>
+<div class="billed-addr">${inv.clientAddress||''}</div>
+<div class="inv-label">Invoice</div>
+<table>
+  <thead><tr>
+    <th style="width:52%">${t.descCol}</th>
+    <th>${t.rateCol}</th>
+    <th>${t.qtyCol}</th>
+    <th>${t.amtCol}</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="totals">
+  <div>${t.subTotal}: <strong>USD $${total.toFixed(2)}</strong></div>
+  <div>${t.discount}: ${t.na}</div>
+  <div>${t.taxes}: ${t.na}</div>
+  <div class="total-final">${t.total}: USD $${total.toFixed(2)}</div>
+</div>
+<div class="footer"><span>${s.web||''}</span><span>${s.email||''}</span></div>
+<script>
+  window.onload = function(){
+    setTimeout(()=>{ window.print(); window.close(); }, 600);
+  };
+<\/script>
+</body></html>`);
+  w.document.close();
 };
 
 // ─── Start ─────────────────────────────────────────────────
