@@ -241,8 +241,9 @@ body{font-family:var(--font);background:#e4e4e4;color:var(--black);min-height:10
         </div>
       </div>
 
-      <div class="flex mt">
-        <button class="btn btn-black" onclick="saveInvoice()">Guardar factura</button>
+      <div class="flex mt" style="flex-wrap:wrap;gap:8px">
+        <button class="btn btn-black" onclick="saveInvoice(false)">Guardar factura</button>
+        <button class="btn" onclick="saveInvoice(true)">Guardar borrador</button>
         <button class="btn" onclick="goPreview()">Vista previa →</button>
         <button class="btn btn-sm btn-danger" id="btn-delete-inv" onclick="deleteInvoice()" style="margin-left:auto;display:none">Eliminar</button>
       </div>
@@ -457,7 +458,7 @@ function renderDashboard(){
   el.innerHTML=invoices.slice(0,6).map(inv=>`
     <div class="list-item" onclick="editInvoice('${inv.id}')" style="cursor:pointer">
       <div>
-        <div class="li-title">${inv.number} — ${inv.clientName||'Sin cliente'}</div>
+        <div class="li-title">${inv.number} — ${inv.clientName||'Sin cliente'} ${inv.status==='draft'?'<span class="badge" style="background:#fff3cd;color:#856404;margin-left:6px">Borrador</span>':''}</div>
         <div class="li-sub">${inv.date||''} · ${(inv.lineItems||[]).length} concepto(s)</div>
       </div>
       <div class="flex">
@@ -577,18 +578,18 @@ function updateTotals(){
   document.getElementById('tot-disp').textContent='USD $'+sub.toFixed(2);
 }
 
-window.saveInvoice = async function(){
+window.saveInvoice = async function(isDraft=false){
   const clientId=document.getElementById('f-client').value;
   const client=clients.find(c=>c.id===clientId);
   const date=document.getElementById('f-date').value;
   const total=lineItems.reduce((a,li)=>a+(parseFloat(li.amount)||0),0);
   const number=document.getElementById('f-number').value;
 
-  if(!clientId){showAlert('inv-alert','Selecciona un cliente.','err');return}
-  if(!lineItems.length||!lineItems[0].desc){showAlert('inv-alert','Agrega al menos un concepto.','err');return}
+  if(!isDraft && !clientId){showAlert('inv-alert','Selecciona un cliente.','err');return}
+  if(!isDraft && (!lineItems.length||!lineItems[0].desc)){showAlert('inv-alert','Agrega al menos un concepto.','err');return}
 
   showLoad('Guardando…');
-  const data={number,date,clientId,clientName:client?.name||'',clientAddress:client?.address||'',lineItems:[...lineItems],total,createdAt:Date.now()};
+  const data={number,date,clientId,clientName:client?.name||'',clientAddress:client?.address||'',lineItems:[...lineItems],total,status:isDraft?'draft':'final',createdAt:Date.now()};
 
   try{
     if(currentInvId){
@@ -599,12 +600,14 @@ window.saveInvoice = async function(){
       const ref=await addDoc(collection(db,'invoices'),data);
       invoices.unshift({id:ref.id,...data});
       currentInvId=ref.id;
-      // Increment next number
-      settings.nextNum=(settings.nextNum||32)+1;
-      await setDoc(doc(db,'config','settings'),settings);
+      // Only increment number for final invoices
+      if(!isDraft){
+        settings.nextNum=(settings.nextNum||32)+1;
+        await setDoc(doc(db,'config','settings'),settings);
+      }
     }
     hideLoad();
-    showAlert('inv-alert','Factura guardada correctamente.','ok');
+    showAlert('inv-alert', isDraft ? 'Borrador guardado.' : 'Factura guardada correctamente.','ok');
     document.getElementById('btn-delete-inv').style.display='';
     document.getElementById('inv-page-title').textContent='Editar Factura';
   }catch(e){
@@ -624,6 +627,7 @@ window.goPreview = function(){
 };
 
 function renderPreview(inv){
+  lastPreviewData = inv;
   const c=inv.client||{name:inv.clientName||'',address:inv.clientAddress||''};
   const items=inv.lineItems||[];
   const total=typeof inv.total==='number'?inv.total:items.reduce((a,li)=>a+(parseFloat(li.amount)||0),0);
@@ -847,22 +851,24 @@ function showAlert(id,msg,type){
 }
 
 // ─── Language switch ───────────────────────────────────────
+let lastPreviewData = null;
+
 window.setLang = function(l){
   lang = l;
   localStorage.setItem('lmnto_lang', l);
-  document.getElementById('lang-es').style.background = l==='es' ? 'var(--black)' : '';
-  document.getElementById('lang-es').style.color = l==='es' ? 'var(--white)' : '';
-  document.getElementById('lang-en').style.background = l==='en' ? 'var(--black)' : '';
-  document.getElementById('lang-en').style.color = l==='en' ? 'var(--white)' : '';
-  // Re-render preview if visible
-  if(document.getElementById('page-preview').classList.contains('active')){
-    const inv = invoices.find(x=>x.id===currentInvId);
-    if(inv){ const c=clients.find(cl=>cl.id===inv.clientId); renderPreview({...inv,client:c}); }
-  }
+  // Update button styles
+  ['es','en'].forEach(code=>{
+    const btn = document.getElementById('lang-'+code);
+    if(!btn) return;
+    btn.style.background = l===code ? 'var(--black)' : '';
+    btn.style.color = l===code ? 'var(--white)' : '';
+  });
+  // Re-render preview with current data
+  if(lastPreviewData) renderPreview(lastPreviewData);
 };
 
 function applyLangUI(){
-  setLang(lang);
+  window.setLang(lang);
 }
 
 // ─── Start ─────────────────────────────────────────────────
