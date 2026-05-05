@@ -162,14 +162,7 @@ body{font-family:var(--font);background:#e4e4e4;color:var(--black);min-height:10
   #inv-preview-wrap{padding:24px}
 }
 
-/* Print */
-@media print{
-  .sidebar,.main > *:not(#page-preview),.page-title,.page-sub,.flex.mt,#print-bar{display:none!important}
-  body{background:white}
-  .main{margin:0;padding:0;max-width:100%}
-  #page-preview{display:block!important}
-  #inv-preview-wrap{border:none;border-radius:0;padding:32px 40px;box-shadow:none}
-}
+/* Print via jsPDF */
 </style>
 </head>
 <body>
@@ -329,7 +322,7 @@ body{font-family:var(--font);background:#e4e4e4;color:var(--black);min-height:10
             <button id="lang-es" class="btn btn-sm" style="border:none;border-radius:0;border-right:1px solid var(--g300)" onclick="setLang('es')">ES</button>
             <button id="lang-en" class="btn btn-sm" style="border:none;border-radius:0" onclick="setLang('en')">EN</button>
           </div>
-          <button class="btn btn-black" onclick="window.print()">Imprimir / PDF</button>
+          <button class="btn btn-black" onclick="window.downloadPDF()" id="btn-pdf">⬇ Descargar PDF</button>
         </div>
       </div>
       <div id="inv-preview-wrap"></div>
@@ -339,6 +332,8 @@ body{font-family:var(--font);background:#e4e4e4;color:var(--black);min-height:10
 </div>
 
 <!-- Firebase -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -870,6 +865,50 @@ window.setLang = function(l){
 function applyLangUI(){
   window.setLang(lang);
 }
+
+// ─── PDF Download ──────────────────────────────────────────
+window.downloadPDF = async function(){
+  const btn = document.getElementById('btn-pdf');
+  const origText = btn.innerHTML;
+  btn.innerHTML = '⏳ Generando…';
+  btn.disabled = true;
+
+  try {
+    const el = document.getElementById('inv-preview-wrap');
+    const canvas = await html2canvas(el, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'letter'
+    });
+
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 15;
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    pdf.addImage(imgData, 'PNG', margin, margin, imgW, Math.min(imgH, pageH - margin * 2));
+
+    // Filename from invoice number
+    const num = (lastPreviewData?.number || 'invoice').replace('#','').trim();
+    const client = (lastPreviewData?.clientName || '').replace(/[^a-zA-Z0-9]/g,'-').slice(0,20);
+    pdf.save(`invoice-${num}-${client}.pdf`);
+  } catch(e) {
+    alert('Error generando PDF: ' + e.message);
+  }
+
+  btn.innerHTML = origText;
+  btn.disabled = false;
+};
 
 // ─── Start ─────────────────────────────────────────────────
 init().then(()=>applyLangUI());
