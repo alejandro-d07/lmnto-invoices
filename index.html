@@ -932,7 +932,10 @@ window.downloadPDF = function(){
   ${logoSvg}
 </div>
 <hr/>
-<div class="meta">${t.invoiceNum}: <strong>${inv.number||''}</strong>&nbsp;&nbsp;&nbsp;${t.dateIssued}: <strong>${fmtDate}</strong></div>
+<div class="meta" style="display:flex;justify-content:flex-end;gap:24px">
+  <span>${t.invoiceNum}: <strong>${inv.number||''}</strong></span>
+  <span>${t.dateIssued}: <strong>${fmtDate}</strong></span>
+</div>
 <div class="billed-label">${t.billedTo||'Billed To:'}</div>
 <div class="billed-name">${inv.clientName||''}</div>
 <div class="billed-addr">${inv.clientAddress||''}</div>
