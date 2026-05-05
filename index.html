@@ -899,8 +899,6 @@ window.downloadPDF = function(){
   .from{font-size:11px;line-height:1.9;color:#666}
   .from strong{color:#111}
   hr{border:none;border-top:1px solid #e0e0e0;margin:0 0 24px}
-  .meta{text-align:right;font-size:11px;color:#888;margin-bottom:28px}
-  .meta strong{color:#111}
   .billed-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#aaa;margin-bottom:5px}
   .billed-name{font-size:14px;font-weight:700;margin-bottom:3px}
   .billed-addr{font-size:11px;color:#666;margin-bottom:28px}
@@ -931,10 +929,12 @@ window.downloadPDF = function(){
   ${logoSvg}
 </div>
 <hr/>
-<div class="meta" style="display:flex;justify-content:flex-end;gap:24px">
-  <span>${t.invoiceNum}: <strong>${inv.number||''}</strong></span>
-  <span>${t.dateIssued}: <strong>${fmtDate}</strong></span>
-</div>
+<table style="width:100%;border-collapse:collapse;margin-bottom:28px">
+  <p style="text-align:right;font-size:11px;color:#888;margin-bottom:28px;letter-spacing:0">
+  ${t.invoiceNum}:&nbsp;<strong style="color:#111">${inv.number||''}</strong>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  ${t.dateIssued}:&nbsp;<strong style="color:#111">${fmtDate}</strong>
+</p>
 <div class="billed-label">${t.billedTo||'Billed To:'}</div>
 <div class="billed-name">${inv.clientName||''}</div>
 <div class="billed-addr">${inv.clientAddress||''}</div>
