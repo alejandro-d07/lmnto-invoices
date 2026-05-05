@@ -867,8 +867,6 @@ function applyLangUI(){
 }
 
 // ─── PDF Download ──────────────────────────────────────────
-const LOGO_B64 = 'PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9Ijc2IiB2aWV3Qm94PSIwIDAgMjg1LjA3IDY3LjI3IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9IiMxMTExMTEiPjxnIGlkPSJMYXllcl8xLTIiPjxwYXRoIGQ9Ik0wLDBoOS44OXY2Ni4yMkgwVjBaIi8+PHBhdGggZD0iTTIxLjk2LDM4LjE0aDQwLjI0djguNzVIMjEuOTZ2LTguNzVaIi8+PHBhdGggZD0iTTc0LjI2LDE4LjloOS40NXY1Ljg2YzIuNjItNC41NSw3LjQ0LTYuOTEsMTMuMjEtNi45MSw2LjM5LDAsMTEuOTgsMy4wNiwxNC43OCw4LjA1LDMuMTUtNS4zNCw4LjQ5LTguMDUsMTQuNzgtOC4wNSw5Ljg4LDAsMTcuNTgsNy4zNSwxNy41OCwxNy43NnYzMC42MmgtOS44OXYtMjcuOTFjMC03LTQuMDItMTEuMjktOS45Ny0xMS4yOXMtMTAuMTUsNC4yOS0xMC4xNSwxMS4yOXYyNy45MWgtOS44di0yNy45MWMwLTctNC4xMS0xMS4yOS0xMC4wNi0xMS4yOXMtMTAuMDYsNC4yOS0xMC4wNiwxMS4yOXYyNy45MWgtOS44OVYxOC45WiIvPjxwYXRoIGQ9Ik0xNTMuNjksMTguOWg5LjQ1djUuNzdjMi43MS00LjQ2LDcuNTItNi44MiwxMy4zOC02LjgyLDEwLjMyLDAsMTcuODUsNy4zNSwxNy44NSwxNy43NnYzMC42MmgtOS44di0yNy45MWMwLTctNC4yOS0xMS4yOS0xMC41LTExLjI5cy0xMC41LDQuMjktMTAuNSwxMS4yOXYyNy45MWgtOS44OFYxOC45WiIvPjxwYXRoIGQ9Ik0yMDguNzksNTAuNzR2LTIyLjkyaC04LjMxdi04LjkyaDEuMzFjNC4zNywwLDctMi43MSw3LTcuMTd2LTMuNjdoOS44OHYxMC44NWgxMC43NnY4LjkyaC0xMC43NnYyMi40OGMwLDQuODEsMi4xOSw3LjcsNy44Nyw3LjcuODgsMCwyLjEtLjA5LDMuMjQtLjI2djguNDljLTEuNTguMjYtMy43Ni41Mi01LjM0LjUyLTkuOTcsMC0xNS42Ni01Ljg2LTE1LjY2LTE2LjAxWiIvPjxwYXRoIGQ9Ik0yMzUuNjUsNDIuNTFjMC0xNC4yNiwxMC44NS0yNC42NywyNC43Ni0yNC42N3MyNC42NywxMC40MSwyNC42NywyNC42Ny0xMS4xMSwyNC43Ni0yNC42NywyNC43Ni0yNC43Ni0xMC41LTI0Ljc2LTI0Ljc2Wk0yNzQuODQsNDIuNTFjMC04LjkyLTYuMjEtMTUuNDgtMTQuNDMtMTUuNDhzLTE0LjQzLDYuNTYtMTQuNDMsMTUuNDgsNi4xMiwxNS41NywxNC40MywxNS41NywxNC40My02LjY1LDE0LjQzLTE1LjU3WiIvPjxwYXRoIGQ9Ik0yODUuMDcsMTcuN2MwLDEuNTctMS4yMywyLjgtMi44MywyLjhzLTIuODUtMS4yMy0yLjg1LTIuOCwxLjI3LTIuNzcsMi44NS0yLjc3LDIuODMsMS4yMywyLjgzLDIuNzdaTTI4MC4xLDE3LjdjMCwxLjIzLjkxLDIuMjEsMi4xNiwyLjIxczIuMTEtLjk4LDIuMTEtMi4xOS0uODktMi4yMy0yLjEzLTIuMjMtMi4xNCwxLTIuMTQsMi4yMVpNMjgxLjgsMTkuMTVoLS42NHYtMi43N2MuMjUtLjA1LjYxLS4wOCwxLjA2LS4wOC41MiwwLC43Ni4wOC45Ni4yLjE1LjEyLjI3LjM0LjI3LjYxLDAsLjMtLjI0LjU0LS41Ny42NHYuMDNjLjI3LjEuNDIuMy41MS42Ny4wOC40Mi4xMy41OS4yLjY5aC0uNjljLS4wOC0uMS0uMTMtLjM1LS4yMi0uNjctLjA1LS4zLS4yMi0uNDQtLjU3LS40NGgtLjN2MS4xMVpNMjgxLjgyLDE3LjU4aC4zYy4zNSwwLC42NC0uMTIuNjQtLjQsMC0uMjUtLjE4LS40Mi0uNTktLjQyLS4xNywwLS4yOS4wMi0uMzUuMDN2Ljc5WiIvPjwvZz48L3N2Zz4=';
-
 window.downloadPDF = function(){
   const btn = document.getElementById('btn-pdf');
   btn.innerHTML = '⏳ Generando…';
@@ -880,11 +878,11 @@ window.downloadPDF = function(){
       if(!inv){ alert('Abre la vista previa primero.'); btn.innerHTML='⬇ Descargar PDF'; btn.disabled=false; return; }
 
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
-      const W = doc.internal.pageSize.getWidth(); // 215.9
-      const mx = 20; // margin x
-      const cw = W - mx*2; // content width
-      let y = 20;
+      const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter', compress:true });
+      const W = doc.internal.pageSize.getWidth();
+      const mx = 20;
+      const cw = W - mx*2;
+      let y = 22;
 
       const s = settings;
       const t = T[lang];
@@ -894,93 +892,104 @@ window.downloadPDF = function(){
       const num = (inv.number||'').replace('#','').trim();
       const clientFile = (inv.clientName||'').replace(/[^a-zA-Z0-9]/g,'-').slice(0,20);
 
-      // ── Logo (SVG as image) ──
-      try{
-        doc.addImage('data:image/svg+xml;base64,'+LOGO_B64,'SVG', W-mx-50, y-2, 50, 12);
-      }catch(e){
-        // fallback text logo
-        doc.setFont('helvetica','bold').setFontSize(16).setTextColor(15,15,15);
-        doc.text('l–mnto', W-mx, y+6, {align:'right'});
-      }
+      // Helper
+      const gray = (v) => doc.setTextColor(v,v,v);
+      const black = () => doc.setTextColor(15,15,15);
+      const normal = (sz) => { doc.setFont('helvetica','normal'); doc.setFontSize(sz||9); };
+      const bold = (sz) => { doc.setFont('helvetica','bold'); doc.setFontSize(sz||9); };
+
+      // ── Logo as text (vector, zero weight) ──
+      bold(18); black();
+      doc.text('l–mnto', W-mx, y, {align:'right'});
+      y += 2;
 
       // ── From info ──
-      doc.setFont('helvetica','normal').setFontSize(8).setTextColor(80,80,80);
-      const fromLines = [
-        s.phone||'', s.email||'', '',
-        s.name||'',
-        ...(s.addr||'').split(',').map(x=>x.trim()),
-        s.web||''
-      ].filter(Boolean);
-      fromLines.forEach(line=>{ doc.text(line, mx, y); y+=4; });
+      normal(8); gray(90);
+      const fromLines = [s.phone||'', s.email||'', '', ...(s.name?[s.name]:[]), ...(s.addr||'').split(',').map(x=>x.trim()), s.web||''].filter(Boolean);
+      // Bold name
+      fromLines.forEach((line, i) => {
+        if(line === s.name){ bold(8); black(); doc.text(line, mx, y); normal(8); gray(90); }
+        else doc.text(line, mx, y);
+        y += 4;
+      });
 
       // ── Divider ──
-      y += 4;
-      doc.setDrawColor(210,210,210).setLineWidth(0.3).line(mx, y, W-mx, y);
-      y += 8;
+      y += 3;
+      doc.setDrawColor(210,210,210).setLineWidth(0.2).line(mx, y, W-mx, y);
+      y += 7;
 
       // ── Invoice number + date ──
-      doc.setFont('helvetica','normal').setFontSize(8).setTextColor(100,100,100);
-      const metaLine = `${t.invoiceNum}: #${num}     ${t.dateIssued}: ${fmtDate}`;
-      doc.text(metaLine, W-mx, y, {align:'right'});
+      normal(8); gray(110);
+      doc.text(`${t.invoiceNum}: `, W-mx-50, y);
+      bold(8); black();
+      const numW = doc.getTextWidth(`${t.invoiceNum}: `);
+      doc.text(`#${num}`, W-mx-50+numW, y);
+      normal(8); gray(110);
+      doc.text(`   ${t.dateIssued}: `, W-mx-18, y);
+      bold(8); black();
+      doc.text(fmtDate, W-mx, y, {align:'right'});
       y += 12;
 
       // ── Billed To ──
-      doc.setFont('helvetica','bold').setFontSize(7).setTextColor(140,140,140);
-      doc.text((t.billedTo||'BILLED TO:').toUpperCase(), mx, y); y+=5;
-      doc.setFont('helvetica','bold').setFontSize(10).setTextColor(15,15,15);
-      doc.text(inv.clientName||'', mx, y); y+=5;
-      doc.setFont('helvetica','normal').setFontSize(8).setTextColor(80,80,80);
-      doc.text(inv.clientAddress||'', mx, y); y+=12;
+      bold(7); gray(150);
+      doc.text((t.billedTo||'BILLED TO:').toUpperCase(), mx, y); y += 5;
+      bold(11); black();
+      doc.text(inv.clientName||'', mx, y); y += 5;
+      normal(8); gray(90);
+      doc.text(inv.clientAddress||'', mx, y); y += 12;
 
       // ── INVOICE label ──
-      doc.setFont('helvetica','bold').setFontSize(7).setTextColor(140,140,140);
-      doc.text('INVOICE', mx, y); y+=6;
+      bold(7); gray(150);
+      doc.text('INVOICE', mx, y); y += 5;
 
       // ── Table header ──
       doc.setDrawColor(200,200,200).setLineWidth(0.2).line(mx, y, W-mx, y);
-      y+=4;
-      const colDesc=mx, colRate=mx+cw*0.52, colQty=mx+cw*0.68, colAmt=mx+cw*0.84;
-      doc.setFont('helvetica','bold').setFontSize(7).setTextColor(130,130,130);
-      doc.text(t.descCol||'Description', colDesc, y);
-      doc.text(t.rateCol||'Rate', colRate, y);
-      doc.text(t.qtyCol||'Qty', colQty, y);
-      doc.text(t.amtCol||'Amount', W-mx, y, {align:'right'});
-      y+=3;
+      y += 5;
+      const c1=mx, c2=mx+cw*0.52, c3=mx+cw*0.68, c4=W-mx;
+      bold(7); gray(140);
+      doc.text(t.descCol||'Description', c1, y);
+      doc.text(t.rateCol||'Rate', c2, y);
+      doc.text(t.qtyCol||'Qty', c3, y);
+      doc.text(t.amtCol||'Amount', c4, y, {align:'right'});
+      y += 3;
       doc.setDrawColor(200,200,200).line(mx, y, W-mx, y);
-      y+=6;
+      y += 6;
 
       // ── Line items ──
-      doc.setFont('helvetica','normal').setFontSize(9).setTextColor(15,15,15);
       items.forEach(li=>{
         const descLines = doc.splitTextToSize(li.desc||'', cw*0.48);
-        const rowH = Math.max(descLines.length*4.5, 7);
-        descLines.forEach((line,i)=>doc.text(line, colDesc, y+i*4.5));
-        doc.text(li.rate?`USD $${parseFloat(li.rate).toFixed(0)}/hr`:'', colRate, y);
-        doc.text(String(li.qty||''), colQty, y);
-        doc.setFont('helvetica','bold');
-        doc.text(li.amount?`USD $${parseFloat(li.amount).toFixed(2)}`:'', W-mx, y, {align:'right'});
-        doc.setFont('helvetica','normal');
+        const rowH = Math.max(descLines.length * 5, 8);
+        normal(9); black();
+        descLines.forEach((line,i) => doc.text(line, c1, y + i*5));
+        doc.text(li.rate ? `USD $${parseFloat(li.rate).toFixed(0)}/hr` : '', c2, y);
+        doc.text(String(li.qty||''), c3, y);
+        bold(9);
+        doc.text(li.amount ? `USD $${parseFloat(li.amount).toFixed(2)}` : '', c4, y, {align:'right'});
         y += rowH;
         doc.setDrawColor(230,230,230).setLineWidth(0.1).line(mx, y, W-mx, y);
-        y+=4;
+        y += 5;
       });
 
       // ── Totals ──
-      y+=4;
-      doc.setFont('helvetica','normal').setFontSize(9).setTextColor(80,80,80);
-      doc.text(`${t.subTotal||'Sub Total'}:`, W-mx-40, y); doc.text(`USD $${total.toFixed(2)}`, W-mx, y, {align:'right'}); y+=6;
-      doc.text(`${t.discount||'Discount'}: ${t.na||'N/A'}`, W-mx-40, y); y+=6;
-      doc.text(`${t.taxes||'Taxes'}: ${t.na||'N/A'}`, W-mx-40, y); y+=8;
-      doc.setDrawColor(15,15,15).setLineWidth(0.5).line(W-mx-60, y, W-mx, y); y+=5;
-      doc.setFont('helvetica','bold').setFontSize(11).setTextColor(15,15,15);
-      doc.text(`${t.total||'Total'}: USD $${total.toFixed(2)}`, W-mx, y, {align:'right'});
+      y += 4;
+      normal(9); gray(90);
+      [[`${t.subTotal}:`, `USD $${total.toFixed(2)}`],[`${t.discount}:`,t.na],[`${t.taxes}:`,t.na]].forEach(([label,val])=>{
+        doc.text(label, W-mx-45, y);
+        doc.text(val, c4, y, {align:'right'});
+        y += 6;
+      });
+      doc.setDrawColor(15,15,15).setLineWidth(0.4).line(W-mx-50, y, W-mx, y);
+      y += 5;
+      bold(12); black();
+      doc.text(`${t.total}: USD $${total.toFixed(2)}`, c4, y, {align:'right'});
 
       // ── Footer ──
-      y+=16;
-      doc.setDrawColor(210,210,210).setLineWidth(0.2).line(mx, y, W-mx, y); y+=5;
-      doc.setFont('helvetica','normal').setFontSize(7).setTextColor(160,160,160);
+      y += 14;
+      doc.setDrawColor(210,210,210).setLineWidth(0.2).line(mx, y, W-mx, y);
+      y += 5;
+      normal(7); gray(160);
       doc.text(s.web||'', mx, y);
-      doc.text(s.email||'', W-mx, y, {align:'right'});
+      doc.text(s.email||'', c4, y, {align:'right'});
 
       doc.save(`invoice-${num}-${clientFile}.pdf`);
 
@@ -988,10 +997,9 @@ window.downloadPDF = function(){
       alert('Error: '+e.message);
       console.error(e);
     }
-
     btn.innerHTML='⬇ Descargar PDF';
     btn.disabled=false;
-  },100);
+  },50);
 };
 
 // ─── Start ─────────────────────────────────────────────────
