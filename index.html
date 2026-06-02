@@ -543,10 +543,19 @@ function renderLIs(){
       </div>
     </div>`).join('');
   // Auto-calculate any items that already have rate+qty pre-filled
-  lineItems.forEach((li,i)=>{
-    if(li.rate && li.qty) liCalcIdx(i);
-  });
-  updateTotals();
+  setTimeout(()=>{
+    lineItems.forEach((li,i)=>{
+      const r=parseFloat(li.rate)||0;
+      const q=parseFloat(li.qty)||0;
+      if(r>0&&q>0){
+        const amt=(r*q).toFixed(2);
+        lineItems[i].amount=amt;
+        const el=document.getElementById('li-amt-'+i);
+        if(el)el.value=amt;
+      }
+    });
+    updateTotals();
+  },50);
 }
 
 window.liSetEv=function(el){
@@ -558,6 +567,7 @@ window.liCalcIdx=function(i){
   if(!lineItems[i])return;
   const r=parseFloat(lineItems[i].rate)||0;
   const q=parseFloat(lineItems[i].qty)||0;
+  if(r===0||q===0)return;
   const amt=(r*q).toFixed(2);
   lineItems[i].amount=amt;
   const el=document.getElementById('li-amt-'+i);
@@ -567,7 +577,13 @@ window.liCalcIdx=function(i){
 window.liRemove=function(i){lineItems.splice(i,1);renderLIs()};
 
 function updateTotals(){
-  const sub=lineItems.reduce((a,li)=>a+(parseFloat(li.amount)||0),0);
+  // Read directly from DOM inputs to ensure we have latest values
+  let sub = 0;
+  lineItems.forEach((li,i)=>{
+    const el = document.getElementById('li-amt-'+i);
+    const val = el ? parseFloat(el.value) : parseFloat(li.amount);
+    sub += (isNaN(val)?0:val);
+  });
   document.getElementById('sub-disp').textContent='USD $'+sub.toFixed(2);
   document.getElementById('tot-disp').textContent='USD $'+sub.toFixed(2);
 }
